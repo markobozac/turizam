@@ -36,7 +36,7 @@ jobs:
         if: steps.secrets.outputs.ok == 'true'
         run: |
           v=${GITHUB_SHA::7}
-          sed -i -E "s#(href|src)=\"(app\.css|app\.js|data\.js)\"#\1=\"\2?v=$v\"#g" site/index.html
+          sed -i -E "s#(href|src)=\"(app\.css|app\.js|data\.js|consent\.js)\"#\1=\"\2?v=$v\"#g" site/index.html
           grep -o '?v=[a-f0-9]*' site/index.html | sort -u
 
       - name: Upload via FTPS

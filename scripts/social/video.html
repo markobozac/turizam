@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="hr"><head><meta charset="utf-8"><title>video</title>
+<style>
+  html, body { margin: 0; }
+  body { width: 1080px; height: 1350px; overflow: hidden; background: #08202c; font-family: "Helvetica Neue", Arial, sans-serif; color: #f2f8f9; position: relative; }
+  #bg { position: absolute; inset: 0; background: radial-gradient(110% 80% at 60% 55%, #1d6478 0%, #0f3b4d 45%, #08202c 100%); }
+  #map { position: absolute; left: 0; top: 300px; width: 1080px; height: 980px; }
+  .blk { position: absolute; left: 70px; right: 70px; top: 80px; opacity: 0; }
+  .k { color: #ffd27a; letter-spacing: .14em; text-transform: uppercase; font-weight: 700; font-size: 30px; }
+  h1 { font-family: Georgia, "Times New Roman", serif; font-size: 96px; line-height: 1.02; margin: 14px 0 0; color: #fff; font-weight: 700; }
+  h2 { font-family: Georgia, "Times New Roman", serif; font-size: 78px; line-height: 1.05; margin: 10px 0 0; color: #fff; font-weight: 700; }
+  .big { font-size: 150px; font-weight: 800; color: #fff; line-height: 1; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+  .sub { font-size: 38px; color: #c8dde2; margin-top: 12px; line-height: 1.25; }
+  .list { position: absolute; left: 70px; top: 880px; width: 470px; font-size: 34px; line-height: 1.45; opacity: 0; }
+  .list div { display: flex; justify-content: space-between; border-bottom: 1px solid rgba(200,221,226,.2); }
+  .list b { color: #ffd27a; font-variant-numeric: tabular-nums; }
+  #chart { position: absolute; left: 70px; right: 70px; top: 520px; height: 600px; opacity: 0; }
+  .url { position: absolute; left: 0; right: 0; bottom: 56px; text-align: center; font-size: 36px; font-weight: 700; color: #ffd27a; }
+  .cta { position: absolute; left: 70px; right: 70px; top: 470px; text-align: center; opacity: 0; }
+  .cta .u2 { display: inline-block; margin-top: 40px; font-size: 64px; font-weight: 800; color: #08202c; background: #ffd27a; padding: 18px 36px; border-radius: 18px; }
+  .src { position: absolute; left: 0; right: 0; bottom: 16px; text-align: center; font-size: 20px; color: #8fb0b8; }
+</style></head>
+<body>
+<div id="bg"></div>
+<svg id="map"></svg>
+<div class="blk" id="s1"><div class="k">Otvoreni podaci · 2025.–2026.</div><h1>Turistička karta Hrvatske</h1></div>
+<div class="blk" id="s2"><div class="big" id="cnt">0</div><div class="sub">noćenja u 2025. u komercijalnom smještaju</div></div>
+<div class="blk" id="s2b" style="top:300px"></div>
+<div class="blk" id="s3"><div class="k">Koncentracija</div><h2 id="s3h"></h2></div>
+<div class="list" id="s3l"></div>
+<div class="blk" id="s4"><div class="k">Sezonalnost</div><h2 id="s4h"></h2></div>
+<svg id="chart" viewBox="0 0 940 600"></svg>
+<div class="blk" id="s5"><div class="k">Prilika</div><h2>Puno noćenja, malo premium hotela</h2></div>
+<div class="list" id="s5l"></div>
+<div class="cta" id="cta"><h2 style="font-size:84px">Istraži svih 556 gradova i općina</h2><div class="sub" style="margin-top:24px">noćenja · rast · sezonalnost · hoteli · operateri · kakvoća mora</div><div class="u2">markobozac.com/turizam</div></div>
+<div class="url" id="url">markobozac.com/turizam</div>
+<div class="src">Izvori: DZS, Ministarstvo turizma i sporta, IZOR</div>
+<script src="../../site/data.js"></script>
+<script>
+const D = window.TURIZAM, U = D.units, NAT = D.nat;
+const KX = Math.cos(44.5 * Math.PI / 180), proj = ([lon, lat]) => [lon * KX * 100, -lat * 100];
+const NS = 'http://www.w3.org/2000/svg';
+const map = document.getElementById('map');
+let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+const byId = new Map(U.map(u => [u.id, u]));
+const paths = [];
+D.geo.features.forEach(f => {
+  const polys = f.geometry.type === 'Polygon' ? [f.geometry.coordinates] : f.geometry.coordinates;
+  let cx = 0, n = 0;
+  const d = polys.map(p => p.map(r => 'M' + r.map(c => { const [x, y] = proj(c); x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); cx += x; n++; return x.toFixed(1) + ',' + y.toFixed(1); }).join('L') + 'Z').join('')).join('');
+  const el = document.createElementNS(NS, 'path');
+  el.setAttribute('d', d); el.setAttribute('stroke', '#0d3446'); el.setAttribute('stroke-width', '.4');
+  map.appendChild(el);
+  paths.push({ el, u: byId.get(f.id), cx: cx / n });
+});
+map.setAttribute('viewBox', `${x0 - 4} ${y0 - 4} ${x1 - x0 + 8} ${y1 - y0 + 8}`);
+const dots = D.beaches.map(b => {
+  const [x, y] = proj([b[1], b[0]]);
+  const c = document.createElementNS(NS, 'circle');
+  c.setAttribute('cx', x); c.setAttribute('cy', y); c.setAttribute('r', 1.5); c.setAttribute('fill', '#ffd27a');
+  map.appendChild(c);
+  return { c, y };
+});
+const ys = dots.map(d => d.y); const yMin = Math.min(...ys), yMax = Math.max(...ys);
+const xs = paths.map(p => p.cx); const xMin = Math.min(...xs), xMax = Math.max(...xs);
+
+const sorted = U.filter(u => u.n2025).sort((a, b) => b.n2025 - a.n2025);
+const top10 = sorted.slice(0, 10);
+const top10Set = new Set(top10.map(u => u.id));
+const share10 = top10.reduce((s, u) => s + u.n2025, 0) / NAT.n2025;
+const short = n => n.replace(/\s+-\s*\S.*$/, '').replace(/\s+\(.*\)$/, '');
+document.getElementById('s3h').textContent = `Deset mjesta donosi ${Math.round(share10 * 100)} % svih noćenja`;
+document.getElementById('s3l').innerHTML = top10.slice(0, 6).map(u => `<div><span>${short(u.label)}</span><b>${(u.n2025 / 1e6).toLocaleString('hr-HR', { maximumFractionDigits: 1 })} mil.</b></div>`).join('');
+const ja = (NAT.m2025[6] + NAT.m2025[7]) / NAT.n2025;
+document.getElementById('s4h').textContent = `${Math.round(ja * 100)} % noćenja u srpnju i kolovozu`;
+const bex = D.beaches.filter(b => b[2] === 1).length / D.beaches.length;
+document.getElementById('s2b').innerHTML = `<div class="sub" style="font-size:44px;color:#fff"><b style="color:#ffd27a">${D.beaches.length.toLocaleString('hr-HR')}</b> mjesta za kupanje, <b style="color:#ffd27a">${Math.round(bex * 100)} %</b> izvrsne kakvoće</div>`;
+// premium gap
+const natPrem = U.reduce((s, u) => s + u.c_prem_beds, 0) / NAT.n2025 * 1e4;
+const gap = U.filter(u => u.n2025 >= 500000 && u.c_prem_beds / u.n2025 * 1e4 < natPrem)
+  .map(u => ({ u, g: natPrem * u.n2025 / 1e4 - u.c_prem_beds })).sort((a, b) => b.g - a.g).slice(0, 5);
+const gapSet = new Set(gap.map(x => x.u.id));
+document.getElementById('s5l').innerHTML = gap.map(x => `<div><span>${short(x.u.label)}</span><b>${(x.u.n2025 / 1e6).toLocaleString('hr-HR', { maximumFractionDigits: 1 })} mil.</b></div>`).join('') + '<div style="border:0;font-size:24px;color:#c8dde2;margin-top:8px">noćenja 2025.; najveći manjak premium kreveta prema prosjeku Hrvatske</div>';
+
+// chart
+const ch = document.getElementById('chart');
+const MON = ['S', 'V', 'O', 'T', 'S', 'L', 'S', 'K', 'R', 'L', 'S', 'P'];
+const mx = Math.max(...NAT.m2025);
+const bars = NAT.m2025.map((v, i) => {
+  const r = document.createElementNS(NS, 'rect');
+  r.setAttribute('x', 20 + i * 76); r.setAttribute('width', 58); r.setAttribute('rx', 6);
+  r.setAttribute('fill', i === 6 || i === 7 ? '#ffd27a' : '#4fa1ad');
+  ch.appendChild(r);
+  const t = document.createElementNS(NS, 'text');
+  t.setAttribute('x', 49 + i * 76); t.setAttribute('y', 590); t.setAttribute('text-anchor', 'middle'); t.setAttribute('fill', '#c8dde2'); t.setAttribute('font-size', 32); t.textContent = MON[i];
+  ch.appendChild(t);
+  return { r, h: v / mx * 500 };
+});
+
+const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+const ease = x => { x = clamp(x); return x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; };
+const ramp = (t, a, b) => ease((t - a) / (b - a));
+const win = (t, a, b, f = .4) => Math.min(ramp(t, a, a + f), 1 - ramp(t, b - f, b));
+const op = v => v == null || v < 1000 ? .10 : v < 50000 ? .20 : v < 150000 ? .32 : v < 400000 ? .46 : v < 1e6 ? .62 : v < 2e6 ? .80 : .95;
+const set = (id, o, dy = 0) => { const e = document.getElementById(id); e.style.opacity = o; e.style.transform = `translateY(${(1 - o) * dy}px)`; };
+
+window.render = function (t) {
+  // text blocks
+  set('s1', win(t, 0.2, 3.5), 40);
+  set('s2', win(t, 3.6, 8.0), 40);
+  set('s2b', win(t, 5.6, 8.0), 20);
+  set('s3', win(t, 8.1, 12.0), 40);
+  document.getElementById('s3l').style.opacity = win(t, 8.8, 12.0);
+  set('s4', win(t, 12.1, 15.5), 40);
+  document.getElementById('chart').style.opacity = win(t, 12.3, 15.5);
+  set('s5', win(t, 15.6, 18.0), 40);
+  document.getElementById('s5l').style.opacity = win(t, 16.2, 18.0);
+  set('cta', ramp(t, 18.1, 18.6), 40);
+  document.getElementById('url').style.opacity = 1 - ramp(t, 18.0, 18.4);
+  const cnt = ramp(t, 3.8, 5.8) * NAT.n2025;
+  document.getElementById('cnt').textContent = (cnt / 1e6).toLocaleString('hr-HR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' mil.';
+
+  // map
+  const mapIn = ramp(t, 0.3, 3.0), choro = ramp(t, 4.0, 6.0);
+  const dimForChart = win(t, 12.0, 15.5, .5), dimCta = ramp(t, 18.0, 18.6);
+  const hl10 = win(t, 8.2, 12.0, .5), hlGap = win(t, 15.6, 18.0, .5);
+  map.style.opacity = 1 - .75 * dimForChart - .8 * dimCta;
+  for (const p of paths) {
+    const reveal = clamp(mapIn * 1.6 - (p.cx - xMin) / (xMax - xMin) * .6);
+    const base = .12 + (op(p.u.n2025) - .12) * choro;
+    let fill = '#9fe3ea', o = base * reveal;
+    if (top10Set.has(p.u.id) && hl10 > 0) { fill = hl10 > .5 ? '#ffd27a' : '#9fe3ea'; o = o * (1 - hl10) + hl10 * .95; }
+    else if (hl10 > 0) o *= 1 - .6 * hl10;
+    if (gapSet.has(p.u.id) && hlGap > 0) { fill = hlGap > .5 ? '#ff8a65' : fill; o = o * (1 - hlGap) + hlGap * .95; }
+    else if (hlGap > 0) o *= 1 - .6 * hlGap;
+    p.el.setAttribute('fill', fill); p.el.setAttribute('fill-opacity', o.toFixed(3));
+  }
+  const beachIn = ramp(t, 5.4, 7.4), beachOut = Math.max(hl10, hlGap);
+  for (const d of dots) {
+    const k = clamp(beachIn * 1.5 - (d.y - yMin) / (yMax - yMin) * .5);
+    d.c.setAttribute('opacity', (k * (1 - .8 * beachOut)).toFixed(3));
+    d.c.setAttribute('r', (1.5 + 2 * (1 - k) * (k > 0 ? 1 : 0)).toFixed(2));
+  }
+  for (const b of bars) {
+    const h = b.h * ramp(t, 12.4, 13.8);
+    b.r.setAttribute('y', 550 - h); b.r.setAttribute('height', Math.max(0, h));
+  }
+};
+window.DURATION = 21.0;
+render(0);
+</script>
+</body></html>

@@ -166,7 +166,7 @@
   });
   const showB = document.getElementById('showBeaches');
   gB.style.display = 'none';
-  showB.addEventListener('change', () => { gB.style.display = showB.checked ? '' : 'none'; });
+  showB.addEventListener('change', () => { gB.style.display = showB.checked ? '' : 'none'; window.track && window.track('toggle_beaches', { on: showB.checked }); });
 
   function paint() {
     U.forEach(u => {
@@ -188,6 +188,7 @@
   tabs.addEventListener('click', e => {
     const b = e.target.closest('button'); if (!b) return;
     metric = METRICS.find(m => 'tab-' + m.key === b.id);
+    window.track && window.track('select_metric', { metric: metric.key });
     tabs.querySelectorAll('button').forEach(x => x.setAttribute('aria-selected', x === b));
     paint();
     if (selected) renderPanel(selected);
@@ -223,7 +224,10 @@
     select(byId.get(p.dataset.id));
   });
 
+  let firstSelect = true;
   function select(u, scroll, zoom) {
+    if (!firstSelect && window.track) window.track('select_place', { place: nm(u), county: u.county });
+    firstSelect = false;
     if (zoom || scroll) zoomToUnit(u);
     if (selected) pathEls.get(selected.id).classList.remove('sel');
     selected = u;
@@ -283,7 +287,7 @@
     if (u.prem != null && u.prem < natPrem / 2 && u.n2025 >= 300000) chips.push('<span class="chip warn">malo premium hotela za ovu potražnju</span>');
     if (u.season != null && u.season > 0.55) chips.push('<span class="chip">izrazito sezonsko</span>');
     if (u.growth != null && u.growth > 0.08) chips.push('<span class="chip">brz rast</span>');
-    if (u.objs.some(o => /MAISTRA/i.test(o[3]))) chips.push('<span class="chip">Maistra u mjestu</span>');
+    if (u.objs.some(o => /MAISTRA|HUP-ZAGREB/i.test(o[3]))) chips.push('<span class="chip">Maistra u mjestu</span>');
     const types = TYPES.map((t, i) => {
       const os = u.objs.filter(o => o[0] === i).sort((a, b) => b[1] - a[1] || b[4] - a[4]);
       if (!os.length) return '';
@@ -381,7 +385,13 @@
   // ---------- operators ----------
   (function operators() {
     const agg = new Map();
-    const clean = s => s.replace(/,.*$/, '').replace(/\s+(d\.d\.|d\.o\.o\.?|j\.d\.o\.o\.?)\s*$/i, '').trim().toUpperCase();
+    // brand groups that operate through several legal entities
+    const GROUPS = [[/^HUP-ZAGREB/, 'MAISTRA']];
+    const clean = s => {
+      const k = s.replace(/,.*$/, '').replace(/\s+(d\.d\.|d\.o\.o\.?|j\.d\.o\.o\.?)\s*$/i, '').trim().toUpperCase();
+      const g = GROUPS.find(([re]) => re.test(k));
+      return g ? g[1] : k;
+    };
     const unitByName = new Map(U.map(u => [u.name, u]));
     D.objs.forEach(o => {
       if (o[0] === 5) return; // marinas have berths, not beds
@@ -423,7 +433,7 @@
         <div class="chips">${places.map(([p, b]) => `<span class="chip">${esc(p)} · ${fmt(b)}</span>`).join('')}</div>
         <h4>Objekti</h4><ul class="objlist">${list}</ul>`;
     }
-    chart.addEventListener('click', e => { const r = e.target.closest('.oprow'); if (r) show(+r.dataset.i); });
+    chart.addEventListener('click', e => { const r = e.target.closest('.oprow'); if (r) { show(+r.dataset.i); window.track && window.track('select_operator', { operator: top[+r.dataset.i][0] }); } });
     panel.addEventListener('click', e => { const b = e.target.closest('button.lnk'); if (b) select(byId.get(b.dataset.id), true); });
     show(0);
   })();

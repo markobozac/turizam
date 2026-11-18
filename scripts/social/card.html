@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="hr"><head><meta charset="utf-8">
+<title>og card</title>
+<style>
+  html, body { margin: 0; }
+  body { width: 1200px; height: 630px; overflow: hidden; font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; color: #f2f8f9;
+    background: radial-gradient(120% 140% at 80% 30%, #1d6478 0%, #0f3b4d 45%, #08202c 100%); position: relative; }
+  svg { position: absolute; right: 10px; top: -20px; height: 670px; }
+  .fade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(8,32,44,.95) 0%, rgba(8,32,44,.7) 45%, rgba(8,32,44,0) 75%); }
+  .t { position: absolute; left: 72px; top: 70px; width: 640px; }
+  .k { color: #ffd27a; letter-spacing: .14em; text-transform: uppercase; font-weight: 700; font-size: 20px; }
+  h1 { font-family: "Iowan Old Style", Palatino, Georgia, serif; font-size: 82px; line-height: 1.02; margin: 18px 0 18px; color: #fff; }
+  p { font-size: 27px; line-height: 1.35; color: #c8dde2; margin: 0; }
+  .n { position: absolute; left: 72px; bottom: 62px; display: flex; gap: 46px; }
+  .n b { display: block; font-size: 44px; color: #fff; }
+  .n span { font-size: 19px; color: #c8dde2; }
+  .u { position: absolute; right: 40px; bottom: 28px; font-size: 20px; color: #ffd27a; font-weight: 600; background: rgba(8,32,44,.85); padding: 6px 12px; border-radius: 8px; }
+</style></head>
+<body>
+<svg id="m"></svg><div class="fade"></div>
+<div class="t"><div class="k">Otvoreni podaci · 556 gradova i općina</div>
+<h1>Turistička karta Hrvatske</h1>
+<p>Gdje su noćenja, gdje rastu, koliko ovise o ljetu i gdje nedostaje premium hotela.</p></div>
+<div class="n" id="n"></div>
+<div class="u">markobozac.com/turizam</div>
+<script src="../../site/data.js"></script>
+<script>
+const D = window.TURIZAM, KX = Math.cos(44.5 * Math.PI / 180);
+const proj = ([lon, lat]) => [lon * KX * 100, -lat * 100];
+let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9, out = '';
+const op = v => v == null || v < 1000 ? .10 : v < 50000 ? .20 : v < 150000 ? .32 : v < 400000 ? .46 : v < 1e6 ? .62 : v < 2e6 ? .80 : .95;
+const byId = new Map(D.units.map(u => [u.id, u]));
+D.geo.features.forEach(f => {
+  const polys = f.geometry.type === 'Polygon' ? [f.geometry.coordinates] : f.geometry.coordinates;
+  const d = polys.map(p => p.map(r => 'M' + r.map(c => { const [x, y] = proj(c); x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); return x.toFixed(1) + ',' + y.toFixed(1); }).join('L') + 'Z').join('')).join('');
+  out += `<path d="${d}" fill="#9fe3ea" fill-opacity="${op(byId.get(f.id).n2025)}" stroke="#0d3446" stroke-width=".35"/>`;
+});
+D.beaches.forEach(b => { const [x, y] = proj([b[1], b[0]]); out += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="1.2" fill="#ffd27a"/>`; });
+const m = document.getElementById('m');
+m.setAttribute('viewBox', `${x0 - 4} ${y0 - 4} ${x1 - x0 + 8} ${y1 - y0 + 8}`); m.innerHTML = out;
+const nf = new Intl.NumberFormat('hr-HR');
+document.getElementById('n').innerHTML = `<div><b>${(D.nat.n2025 / 1e6).toLocaleString('hr-HR', { maximumFractionDigits: 1 })} mil.</b><span>noćenja u 2025.</span></div><div><b>${nf.format(D.objs.length)}</b><span>hotela, kampova i marina</span></div><div><b>${nf.format(D.beaches.length)}</b><span>mjesta za kupanje</span></div>`;
+</script>
+</body></html>

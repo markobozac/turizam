@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Turistička karta Hrvatske</title>
+<title>Turistička karta Hrvatske – noćenja, hoteli i kakvoća mora po općinama</title>
 <meta name="description" content="Noćenja, rast, sezonalnost, premium kapaciteti i kakvoća mora za svih 556 gradova i općina u Hrvatskoj. Otvoreni podaci DZS-a, Ministarstva turizma i sporta i IZOR-a.">
 <link rel="canonical" href="https://markobozac.com/turizam/">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
@@ -13,6 +13,15 @@
 <meta property="og:description" content="Noćenja, rast, sezonalnost, premium hotelski kapaciteti i kakvoća mora za svih 556 gradova i općina. Otvoreni podaci DZS-a, Ministarstva turizma i sporta i IZOR-a.">
 <meta property="og:url" content="https://markobozac.com/turizam/">
 <meta property="og:locale" content="hr_HR">
+<meta property="og:site_name" content="Marko Božac">
+<meta property="og:image" content="https://markobozac.com/turizam/og-image.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Karta Hrvatske po gradovima i općinama s brojem noćenja i mjestima za kupanje">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Turistička karta Hrvatske">
+<meta name="twitter:description" content="Noćenja, rast, sezonalnost, premium hoteli i kakvoća mora za 556 gradova i općina.">
+<meta name="twitter:image" content="https://markobozac.com/turizam/og-image.jpg">
 <link rel="stylesheet" href="app.css">
 </head>
 <body>
@@ -59,7 +68,7 @@
 
   <section class="ops" aria-labelledby="ops-h">
     <h2 id="ops-h">Najveći operateri kategoriziranog smještaja</h2>
-    <p class="sub">Stalni kreveti u hotelima, turističkim naseljima, apartmanima i kampovima, prema pravnoj osobi koja posluje objektom. Grupe koje posluju preko više društava ovdje se vide razdvojeno. Klikni na operatera za popis njegovih objekata.</p>
+    <p class="sub">Stalni kreveti u hotelima, turističkim naseljima, apartmanima i kampovima, prema pravnoj osobi koja posluje objektom. Maistri su pribrojeni objekti HUP-Zagreba, koji posluje pod brendom Maistra; ostale grupe s više društava vide se razdvojeno. Klikni na operatera za popis njegovih objekata.</p>
     <p class="sub opscount" id="opsCount"></p>
     <div class="mapgrid"><div id="opsChart" class="opschart"></div><aside class="panel" id="opsPanel" aria-live="polite"></aside></div>
   </section>
@@ -74,10 +83,11 @@
     <h2 id="m-h">Izvori i metodologija</h2>
     <ul id="sources"></ul>
     <p>Noćenja i dolasci odnose se na komercijalni smještaj (hoteli, kampovi, privatni smještaj i ostalo) prema DZS-u. Oznaka „z” u izvoru znači da je podatak tajan zbog malog broja objekata; takva mjesta na karti su šrafirana. Premium kapacitet čine stalni kreveti u hotelima, aparthotelima i turističkim naseljima s 4 ili 5 zvjezdica iz popisa Ministarstva; privatni smještaj (sobe, apartmani, kuće za odmor) kategoriziraju županije i nije u tom popisu. Objekti su pridruženi gradu ili općini prema adresi, a plaže prema koordinatama mjernog mjesta. Kakvoća mora je konačna ocjena prema EU direktivi (zadnje četiri sezone).</p>
-    <p class="by">Izradio <a href="https://markobozac.com/">Marko Božac</a>. Podaci preuzeti 18. 11. 2026. Izvorni kod i podaci: <a href="https://github.com/markobozac/turizam">github.com/markobozac/turizam</a>.</p>
+    <p class="by">Izradio <a href="https://markobozac.com/">Marko Božac</a>. Podaci preuzeti 18. 11. 2026. Izvorni kod i podaci: <a href="https://github.com/markobozac/turizam">github.com/markobozac/turizam</a>. <a href="#" id="cookieSettings">Postavke kolačića</a></p>
   </section>
 </main>
 
+<script src="consent.js"></script>
 <script src="data.js"></script>
 <script src="app.js"></script>
 </body>
