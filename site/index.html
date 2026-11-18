@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Turistička karta Hrvatske</title>
+<meta name="description" content="Noćenja, rast, sezonalnost, premium kapaciteti i kakvoća mora za svih 556 gradova i općina u Hrvatskoj. Otvoreni podaci DZS-a, Ministarstva turizma i sporta i IZOR-a.">
+<link rel="canonical" href="https://markobozac.com/turizam/">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#0f3b4d">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Turistička karta Hrvatske">
+<meta property="og:description" content="Noćenja, rast, sezonalnost, premium hotelski kapaciteti i kakvoća mora za svih 556 gradova i općina. Otvoreni podaci DZS-a, Ministarstva turizma i sporta i IZOR-a.">
+<meta property="og:url" content="https://markobozac.com/turizam/">
+<meta property="og:locale" content="hr_HR">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<header class="top">
+  <svg id="herobg" class="herobg" aria-hidden="true" focusable="false"></svg>
+  <div class="wrap">
+    <p class="kicker">Otvoreni podaci · studeni 2026.</p>
+    <h1>Turistička karta Hrvatske</h1>
+    <p class="lede">Gdje se noćenja događaju, gdje rastu, koliko ovise o ljetu i gdje uz jaku potražnju nedostaje kvalitetnog hotelskog smještaja.</p>
+    <p class="herofig" id="herofig"></p>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="kpis" id="kpis" aria-label="Ključni pokazatelji"></section>
+
+  <section class="mapblock" aria-label="Karta">
+    <div class="mapctl">
+      <div class="metric-tabs" role="tablist" id="metricTabs"></div>
+      <div class="mapopts">
+        <label class="chk"><input type="checkbox" id="showBeaches"> Mjesta za kupanje (2026.)</label>
+        <div class="search">
+          <label for="q" class="sr">Traži grad ili općinu</label>
+          <input id="q" type="search" placeholder="Traži grad ili općinu…" autocomplete="off">
+          <ul id="qres" class="qres" hidden></ul>
+        </div>
+      </div>
+    </div>
+    <div class="mapgrid">
+      <figure class="map" id="mapfig">
+        <svg id="map" role="img" aria-label="Karta gradova i općina"></svg>
+        <div class="legend" id="legend"></div>
+        <div class="tip" id="tip" hidden></div>
+        <figcaption id="metricNote" class="note"></figcaption>
+      </figure>
+      <aside class="panel" id="panel" aria-live="polite"></aside>
+    </div>
+  </section>
+
+  <section class="insights" aria-labelledby="ins-h">
+    <h2 id="ins-h">Što podaci pokazuju</h2>
+    <div class="cards" id="insights"></div>
+  </section>
+
+  <section class="ops" aria-labelledby="ops-h">
+    <h2 id="ops-h">Najveći operateri kategoriziranog smještaja</h2>
+    <p class="sub">Stalni kreveti u hotelima, turističkim naseljima, apartmanima i kampovima, prema pravnoj osobi koja posluje objektom. Grupe koje posluju preko više društava ovdje se vide razdvojeno. Klikni na operatera za popis njegovih objekata.</p>
+    <p class="sub opscount" id="opsCount"></p>
+    <div class="mapgrid"><div id="opsChart" class="opschart"></div><aside class="panel" id="opsPanel" aria-live="polite"></aside></div>
+  </section>
+
+  <section class="rank" aria-labelledby="rank-h">
+    <h2 id="rank-h">Ljestvica destinacija</h2>
+    <p class="sub">Gradovi i općine s najmanje 100.000 noćenja u 2025. Klikni na naslov stupca za sortiranje, na redak za detalje na karti.</p>
+    <div class="tablewrap"><table id="rankTable"></table></div>
+  </section>
+
+  <section class="method" aria-labelledby="m-h">
+    <h2 id="m-h">Izvori i metodologija</h2>
+    <ul id="sources"></ul>
+    <p>Noćenja i dolasci odnose se na komercijalni smještaj (hoteli, kampovi, privatni smještaj i ostalo) prema DZS-u. Oznaka „z” u izvoru znači da je podatak tajan zbog malog broja objekata; takva mjesta na karti su šrafirana. Premium kapacitet čine stalni kreveti u hotelima, aparthotelima i turističkim naseljima s 4 ili 5 zvjezdica iz popisa Ministarstva; privatni smještaj (sobe, apartmani, kuće za odmor) kategoriziraju županije i nije u tom popisu. Objekti su pridruženi gradu ili općini prema adresi, a plaže prema koordinatama mjernog mjesta. Kakvoća mora je konačna ocjena prema EU direktivi (zadnje četiri sezone).</p>
+    <p class="by">Izradio <a href="https://markobozac.com/">Marko Božac</a>. Podaci preuzeti 18. 11. 2026. Izvorni kod i podaci: <a href="https://github.com/markobozac/turizam">github.com/markobozac/turizam</a>.</p>
+  </section>
+</main>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
