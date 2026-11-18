@@ -307,7 +307,7 @@
         <div><b>${u.intens == null ? '–' : fmt(u.intens)}</b>noćenja po stanovniku ${lvl('intens', u.intens, null)}</div>
         <div><b>${u.beds2025 ? fmt(u.beds2025) : '–'}</b>stalnih kreveta (svi smještaj) ${lvl('beds2025', u.beds2025, null)}</div>
         <div><b>${u.npb == null ? '–' : fmt(u.npb)}</b>noćenja po krevetu godišnje (HR: ${fmt(NAT.n2025 / NAT.beds2025)}) ${lvl('npb', u.npb, true)}</div>
-        <div><b>${fmt(u.c_prem_beds)}</b>kreveta u 4–5★ hotelima</div>
+        <div><b>${fmt(u.c_prem_beds)}</b>kreveta u hotelima i naseljima s 4–5★</div>
         <div><b>${u.b_n ? u.b_exc + ' / ' + u.b_n : '–'}</b>plaža izvrsne kakvoće</div>
       </div>
       <h4>Noćenja po mjesecima</h4>
@@ -362,7 +362,7 @@
         p: `Dvadeset najvećih destinacija donosi ${pct(top20, 0)} noćenja. Od deset najvećih, ${top10.filter(u => /Istarska/.test(u.county)).length} je u Istri.`,
         l: top10.map(u => `${btn(u)} ${mil(u.n2025)}`) },
       { n: 'Prilika', h: 'Velika potražnja, malo hotela s 4 i 5 zvjezdica',
-        p: `Hrvatska ima ${natPrem.toLocaleString('hr-HR', { maximumFractionDigits: 1 })} kreveta u hotelima s 4 i 5 zvjezdica na 10.000 noćenja. Da imaju isti omjer, ovim bi destinacijama trebalo otprilike ovoliko dodatnih premium kreveta. Danas njihovu potražnju uglavnom pokrivaju privatni smještaj i kampovi.`,
+        p: `Hrvatska ima ${natPrem.toLocaleString('hr-HR', { maximumFractionDigits: 1 })} kreveta u hotelima, aparthotelima i turističkim naseljima s 4 i 5 zvjezdica na 10.000 noćenja. Da imaju isti omjer, ovim bi destinacijama trebalo otprilike ovoliko dodatnih premium kreveta. Danas njihovu potražnju uglavnom pokrivaju privatni smještaj i kampovi.`,
         l: gap.map(u => `${btn(u)} ≈ ${fmt(Math.round(u.gapBeds / 10) * 10)} kreveta (sada ${fmt(u.c_prem_beds)})`) },
       { n: 'Rast', h: 'Gdje noćenja rastu najbrže',
         p: `Promjena od 2023. do 2025. među mjestima s više od 300.000 noćenja. Hrvatska ukupno: ${spct(NAT.n2025 / NAT.n2023 - 1)}. Najveći pad: ${fall.map(u => `${esc(nm(u))} ${spct(u.growth, 0)}`).join(', ')}.`,
@@ -431,7 +431,7 @@
       }).join('');
       panel.innerHTML = `<h3>${esc(title(k))}</h3>
         <div class="cty">${a.objs.length} objekata u ${places.length} ${places.length === 1 ? 'mjestu' : 'mjesta'}</div>
-        <div class="stats"><div><b>${fmt(a.beds)} <span class="pc">100 %</span></b>stalnih kreveta ukupno</div><div><b>${fmt(prem)} <span class="pc">${pct(prem / a.beds, 0)}</span></b>u hotelima s 4–5★</div>${byType}</div>
+        <div class="stats"><div><b>${fmt(a.beds)} <span class="pc">100 %</span></b>stalnih kreveta ukupno</div><div><b>${fmt(prem)} <span class="pc">${pct(prem / a.beds, 0)}</span></b>u hotelima i naseljima s 4–5★</div>${byType}</div>
         <h4>Gdje posluje</h4>
         <div class="chips">${places.map(([p, b]) => `<span class="chip">${esc(p)} · ${fmt(b)}</span>`).join('')}</div>
         <h4>Objekti</h4><ul class="objlist">${list}</ul>`;
@@ -451,7 +451,7 @@
       { k: 'growth', t: 'Rast od 2023.', f: u => spct(u.growth) },
       { k: 'ytd', t: `2026. (sij–${MON[PUB - 1]})`, f: u => spct(u.ytd) },
       { k: 'season', t: 'Srpanj + kolovoz', f: u => pct(u.season, 0) },
-      { k: 'c_prem_beds', t: '4–5★ hotelski kreveti', f: u => fmt(u.c_prem_beds) },
+      { k: 'c_prem_beds', t: 'Kreveti 4–5★ (hoteli i naselja)', f: u => fmt(u.c_prem_beds) },
       { k: 'prem', t: 'na 10 tis. noćenja', f: u => u.prem == null ? '–' : u.prem.toLocaleString('hr-HR', { maximumFractionDigits: 1 }) },
       { k: 'intens', t: 'Noćenja po stan.', f: u => fmt(u.intens) },
     ];
