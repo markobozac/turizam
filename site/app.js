@@ -348,9 +348,9 @@
         <div><b>${fmt(u.c_prem_beds)}</b>kreveta u hotelima i naseljima s 4–5★</div>
         <div><b>${u.b_n ? u.b_exc + ' / ' + u.b_n : '–'}</b>plaža izvrsne kakvoće</div>
       </div>
+      ${typeBlock(u)}
       <h4>Noćenja po mjesecima</h4>
       ${monthChart(u)}
-      ${typeBlock(u)}
       ${beachList(u)}
       <h4>Kategorizirani objekti (${u.objs.length})</h4>
       ${u.objs.length ? `<ul class="objlist">${types}</ul>` : '<p class="empty">Nema hotela, kampova ni marina u popisu Ministarstva.</p>'}`;
