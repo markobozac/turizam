@@ -285,13 +285,13 @@
     const leg = parts.filter(p => p[1]).map(p => `<span><i style="background:var(${p[2]})"></i>${p[0]} ${pct(p[1] / tot, 0)}</span>`).join('');
     const hidden = n.slice(0, 4).some(v => v == null) ? '<p class="note" style="padding:4px 0 0">Dio podataka je tajan (z) zbog malog broja objekata.</p>' : '';
     return `<h4>Vrsta smještaja (2025.)</h4>
-      <div class="stats" style="margin:6px 0 12px">
+      <div class="tbar">${bar}</div><div class="leg2 wrap">${leg}</div>${hidden}
+      <div class="stats" style="margin-top:12px">
         <div><b>${u.ps == null ? '–' : pct(u.ps, 0)}</b>noćenja kod malih iznajmljivača ${lvl('ps', u.ps, null)}</div>
         <div><b>${b[1] ? fmt(b[1]) : '–'}</b>kreveta u privatnom smještaju</div>
         <div><b>${u.pocc == null ? '–' : fmt(u.pocc)}</b>noćenja po privatnom krevetu (HR: ${fmt(HR_OCC52)}) ${lvl('pocc', u.pocc, true)}</div>
         <div><b>${u.hocc == null ? '–' : fmt(u.hocc)}</b>noćenja po hotelskom krevetu (HR: ${fmt(HR_OCC51)}) ${lvl('hocc', u.hocc, true)}</div>
-      </div>
-      <div class="tbar">${bar}</div><div class="leg2 wrap">${leg}</div>${hidden}`;
+      </div>`;
   }
 
   const QLBL = { 1: 'izvrsna', 2: 'dobra', 3: 'zadovoljavajuća', 4: 'nezadovoljavajuća' };
