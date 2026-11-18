@@ -19,12 +19,13 @@ jobs:
     steps:
       - name: Trigger pull deploy on the server
         run: |
-          for i in 1 2 3 4 5; do
-            out=$(curl -sS --max-time 120 -w ' [%{http_code}]' "https://markobozac.com/turizam/_deploy.php" || true)
+          for i in 1 2 3 4 5 6 7 8 9 10; do
+            out=$(curl -sS --max-time 120 -w ' [%{http_code}]' "https://markobozac.com/turizam/_deploy.php?t=$GITHUB_RUN_ID-$i" || true)
             echo "$out"
             case "$out" in
               *"$GITHUB_SHA"*) exit 0 ;;
               *"up to date"*|*"deployed"*) echo "server is on another commit, retrying" ;;
+              *) echo "unexpected answer, retrying" ;;
             esac
             sleep 20
           done

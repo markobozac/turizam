@@ -153,6 +153,9 @@ main > section { margin-top: 36px; }
 
 .opschart { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 14px 16px; }
 .oprow { display: grid; grid-template-columns: minmax(120px, 230px) 1fr 70px; gap: 10px; align-items: center; font: inherit; font-size: .85rem; color: var(--ink); width: 100%; text-align: left; background: none; border: 0; border-radius: 6px; padding: 5px 6px; cursor: pointer; }
+.ophead { display: grid; grid-template-columns: minmax(120px, 230px) 1fr 70px; gap: 10px; align-items: end; padding: 0 6px 8px; margin-bottom: 4px; border-bottom: 1px solid var(--line); font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.ophead .where { display: block; text-transform: none; letter-spacing: 0; font-weight: 400; }
+.ophead .val { text-align: right; line-height: 1.2; }
 .oprow:hover { background: var(--sea-0); }
 .oprow[aria-pressed="true"] { background: var(--sea-0); box-shadow: inset 3px 0 0 var(--accent); }
 .oprow .barw { display: block; }

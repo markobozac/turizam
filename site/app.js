@@ -410,7 +410,7 @@
     document.getElementById('opsCount').innerHTML = `Prikazano je <b>${top.length} najvećih od ukupno ${fmt(agg.size)} operatera</b>. Zajedno imaju ${fmt(sum(top.map(t => t[1].beds)))} od ${fmt(allBeds)} kategoriziranih kreveta (${pct(sum(top.map(t => t[1].beds)) / allBeds, 0)}).`;
     const title = s => s.toLowerCase().replace(/(^|\s)\S/g, c => c.toUpperCase());
     const chart = document.getElementById('opsChart');
-    chart.innerHTML = top.map(([k, a], i) => {
+    chart.innerHTML = `<div class="ophead" aria-hidden="true"><span>Operater<span class="where">broj objekata · mjesta s najviše kreveta</span></span><span></span><span class="val">Stalni kreveti</span></div>` + top.map(([k, a], i) => {
       const pl = [...a.places.entries()].sort((x, y) => y[1] - x[1]).slice(0, 3).map(x => x[0]).join(', ');
       return `<button type="button" class="oprow" data-i="${i}" aria-pressed="false"><span class="nm" title="${esc(k)}">${esc(title(k))}<span class="where">${a.objs.length} objekata · ${esc(pl)}</span></span><span class="barw"><span class="bar" style="width:${(a.beds / mx * 100).toFixed(1)}%"></span></span><span class="val">${fmt(a.beds)}</span></button>`;
     }).join('');

@@ -9,6 +9,8 @@
 declare(strict_types=1);
 header('Content-Type: text/plain; charset=utf-8');
 header('Cache-Control: no-store');
+header('X-LiteSpeed-Cache-Control: no-cache');
+register_shutdown_function(function () { $e = error_get_last(); if ($e && in_array($e['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR], true)) echo 'php error: ', $e['message'], "\n"; });
 
 const REPO = 'markobozac/turizam';
 const BRANCH = 'main';
