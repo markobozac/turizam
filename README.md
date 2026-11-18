@@ -49,6 +49,8 @@ Potrebni GitHub secrets (Settings → Secrets and variables → Actions):
 | `FTP_USERNAME` | FTP račun čiji je direktorij `public_html/markobozac/turizam` |
 | `FTP_PASSWORD` | lozinka tog FTP računa |
 
+Umjesto posebnog FTP računa može se koristiti glavni cPanel račun (`FTP_USERNAME` = cPanel korisničko ime, `FTP_PASSWORD` = cPanel lozinka). Tada dodaj i repo varijablu (Settings → Secrets and variables → Actions → Variables) `FTP_SERVER_DIR` = `public_html/markobozac/turizam/`. Napomena: glavni račun ima pristup svim stranicama na hostingu, pa je zaseban FTP račun sigurniji.
+
 Bez tih secreta workflow samo ispisuje upozorenje i ne objavljuje ništa. Ručna objava: Actions → Deploy → Run workflow.
 
 ## Licenca
