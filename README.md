@@ -37,22 +37,6 @@ git commit -am "Osvježeni podaci" && git push
 
 Ako Ministarstvo objavi novi popis kategoriziranih objekata, ažuriraj URL u `fetch_data.sh` i naziv datoteke u `scripts/build.py`.
 
-## Objava (continuous deploy)
-
-Svaki push u `main` koji mijenja `site/` pokreće `.github/workflows/deploy.yml`, koji preko FTPS-a sinkronizira `site/` u `public_html/markobozac/turizam/` na hosting.com serveru. Workflow dodaje `?v=<commit>` na CSS/JS kako bi preglednici uvijek dobili novu verziju.
-
-Potrebni GitHub secrets (Settings → Secrets and variables → Actions):
-
-| Secret | Vrijednost |
-|---|---|
-| `FTP_SERVER` | FTP poslužitelj iz cPanela (FTP Accounts → Configure FTP Client) |
-| `FTP_USERNAME` | FTP račun čiji je direktorij `public_html/markobozac/turizam` |
-| `FTP_PASSWORD` | lozinka tog FTP računa |
-
-Umjesto posebnog FTP računa može se koristiti glavni cPanel račun (`FTP_USERNAME` = cPanel korisničko ime, `FTP_PASSWORD` = cPanel lozinka). Tada dodaj i repo varijablu (Settings → Secrets and variables → Actions → Variables) `FTP_SERVER_DIR` = `public_html/markobozac/turizam/`. Napomena: glavni račun ima pristup svim stranicama na hostingu, pa je zaseban FTP račun sigurniji.
-
-Bez tih secreta workflow samo ispisuje upozorenje i ne objavljuje ništa. Ručna objava: Actions → Deploy → Run workflow.
-
 ## Licenca
 
 Kod: MIT. Podaci pripadaju navedenim izvorima i koriste se prema njihovim uvjetima ponovne uporabe otvorenih podataka.
