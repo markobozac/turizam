@@ -376,6 +376,78 @@ nat['m2024'] = [g(0, 2024, m, 'n') for m in MONTHS]
 nat['beds2025'] = g(0, 2025, '01.-12.', 'beds')
 nat['pub26'] = pub26
 
+# ---------- accommodation types ----------
+def read_csv_cp(path):
+    return list(csv.reader(io.StringIO(open(path, 'rb').read().decode('cp1250'))))
+
+# coastal municipalities: nights (T02) and permanent beds (T04) by type of establishment
+TCODES = {'Hoteli i sličan smještaj': 'h', 'Odmarališta i slični objekti za kraći odmor': 'p',
+          'Kampovi i prostor za kampiranje': 'c', 'Ostali smještaj': 'o', 'Ukupno': 't'}
+def coastal(path, meas):
+    rows = read_csv_cp(path)
+    hdr = rows[0]
+    out = {}
+    county = None
+    for r in rows[1:]:
+        raw = r[0]
+        depth = len(raw) - len(raw.lstrip(' '))
+        name = raw.strip()
+        if depth == 0:
+            county = name; continue
+        d = {}
+        for h, v in zip(hdr[1:], r[1:]):
+            y, rest = h.split(' ', 1)
+            typ = rest.replace(meas + ' ', '', 1)
+            d.setdefault(int(y), {})[TCODES[typ]] = num(v)
+        out[(cnorm(county), name)] = d
+    return out
+cn = coastal(f'{RAW}/T02.csv', 'Noćenja')
+cb = coastal(f'{RAW}/T04.csv', 'Postelje')
+by_key = {}
+for u in units_out:
+    by_key[(cnorm(u['county']), norm(base(u['label'])))] = u['name']
+rec_by_name = {r['name']: r for r in out_units}
+matched_t = 0
+for (c, nm_), d in cn.items():
+    un = by_key.get((c, norm(base(nm_))))
+    if not un:
+        print('TYPE: no unit for', c, nm_); continue
+    matched_t += 1
+    r = rec_by_name[un]
+    r['tn'] = {y: [d[y].get(k) for k in 'hpcot'] for y in (2019, 2023, 2024, 2025) if y in d}
+    bd = cb.get((c, nm_), {})
+    r['tb'] = {y: [bd[y].get(k) for k in 'hpcot'] for y in (2025,) if y in bd}
+print('coastal type rows matched', matched_t, 'of', len(cn))
+
+# national, by type: annual 2019-2025 and monthly 2025
+tu = read_csv_cp(f'{RAW}/BS_TU14.csv')
+tm = read_csv_cp(f'{RAW}/TU14m.csv')
+NATTYPES = {'Hoteli': 'Hoteli', 'Turistička naselja': 'Turistička naselja', 'Turistički apartmani': 'Turistički apartmani (tvrtke)',
+            'Sobe, apartmani, studio-apartmani,  kuće za odmor': 'Privatni smještaj (sobe, apartmani, kuće)',
+            'Kampovi': 'Kampovi', 'Turistički smještajni objekti - ukupno': 'Ukupno',
+            '55.1. Hoteli i sličan smještaj': '55.1', '55.2. Odmarališta i slični objekti za kraći odmor': '55.2'}
+MEAS14 = {'Broj stalnih postelja': 'beds', 'Dolasci turista -  ukupno': 'arr', 'Noćenja turista - ukupno': 'n',
+          'Noćenja turista -  strani': 'nf', 'Broj soba i apartmana': 'units', 'Broj mjesta za kampiranje': 'pitches'}
+def parse14(rows):
+    out = {}
+    for r in rows[1:]:
+        k = r[0].strip()
+        if k not in NATTYPES: continue
+        for h, v in zip(rows[0][1:], r[1:]):
+            y, mon, meas = h.split(' ', 2)
+            if meas not in MEAS14: continue
+            out.setdefault(NATTYPES[k], {}).setdefault(int(y), {}).setdefault(mon, {})[MEAS14[meas]] = num(v)
+    return out
+a14 = parse14(tu)
+m14 = parse14(tm)
+nat_types = []
+for k in NATTYPES.values():
+    years = {y: a14[k][y]['01.-12.'] for y in sorted(a14[k]) if y <= 2025}
+    nat_types.append({'name': k, 'years': years,
+                      'm2025': [m14[k][2025][m]['n'] for m in MONTHS],
+                      'm2026': [m14[k].get(2026, {}).get(m, {}).get('n') for m in pub26]})
+nat['types'] = nat_types
+
 meta_out = {
     'generated': '2026-11-18',
     'sources': {
@@ -383,6 +455,7 @@ meta_out = {
         'mints': 'Ministarstvo turizma i sporta, Popis kategoriziranih ugostiteljskih i turističkih objekata (31.10.2026.)',
         'izor': 'Institut za oceanografiju i ribarstvo, kakvoća mora za kupanje, konačna ocjena (EU) 2026.',
         'geo': 'Eurostat GISCO, LAU 2024 granice',
+        'types': 'DZS PX-Web, Tablica 1.4 (BS_TU14) i primorska naselja T2/T4 (BS_T02, BS_T04), 2019.–2026.',
     },
 }
 bundle = {'meta': meta_out, 'nat': nat, 'units': out_units, 'objs': obj_out, 'types': TYPES,

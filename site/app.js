@@ -35,11 +35,27 @@
     u.foreign = (u.n2025 > 0 && u.nf2025 != null) ? u.nf2025 / u.n2025 : null;
   });
   const natPrem = sum(U.map(u => u.c_prem_beds)) / NAT.n2025 * 1e4;
-  U.forEach(u => { u.npb = (u.beds2025 && u.n2025) ? u.n2025 / u.beds2025 : null; });
+  U.forEach(u => {
+    u.npb = (u.beds2025 && u.n2025) ? u.n2025 / u.beds2025 : null;
+    // accommodation types (coastal municipalities only): [hotels, private, camps, other, total]
+    const tn = u.tn && u.tn[2025], tb = u.tb && u.tb[2025];
+    u.coastal = !!tn;
+    u.ps = tn && tn[4] && tn[1] != null ? tn[1] / tn[4] : null;
+    u.pocc = tn && tb && tn[1] && tb[1] ? tn[1] / tb[1] : null;
+    u.hocc = tn && tb && tn[0] && tb[0] ? tn[0] / tb[0] : null;
+    u.pbeds = tb ? tb[1] : null;
+  });
+  const TT = Object.fromEntries(NAT.types.map(t => [t.name, t]));
+  const T25 = n => TT[n].years[2025];
+  const HR_POCC = T25('Privatni smještaj (sobe, apartmani, kuće)').n / T25('Privatni smještaj (sobe, apartmani, kuće)').beds;
+  const HR_HOCC = T25('Hoteli').n / T25('Hoteli').beds;
+  const HR_PS = T25('Privatni smještaj (sobe, apartmani, kuće)').n / T25('Ukupno').n;
+  // coastal panel uses DZS groups 55.1 (hotels and similar) and 55.2 (private and similar)
+  const HR_OCC51 = T25('55.1').n / T25('55.1').beds, HR_OCC52 = T25('55.2').n / T25('55.2').beds;
   // peer group for "high / low" badges: places with at least 50.000 nights
   const PEERS = U.filter(u => u.n2025 >= 50000);
   const DIST = {};
-  ['npb', 'growth', 'ytd', 'season', 'foreign', 'intens', 'n2025', 'beds2025'].forEach(k => {
+  ['npb', 'growth', 'ytd', 'season', 'foreign', 'intens', 'n2025', 'beds2025', 'ps', 'pocc', 'hocc'].forEach(k => {
     DIST[k] = PEERS.map(u => u[k]).filter(v => v != null).sort((a, b) => a - b);
   });
   // good: true = higher is better, false = lower is better, null = neutral
@@ -51,7 +67,7 @@
     const t = p >= 0.75 ? 'visoko' : p <= 0.25 ? 'nisko' : 'prosječno';
     const cls = t === 'prosječno' || good == null ? 'neu' : ((t === 'visoko') === good ? 'good' : 'bad');
     const arrow = t === 'visoko' ? '▲' : t === 'nisko' ? '▼' : '●';
-    return `<span class="lvl ${cls}" title="Više od ${Math.round(p * 100)} % od ${d.length} turističkih mjesta (50.000+ noćenja)">${arrow} ${t}</span>`;
+    return `<span class="lvl ${cls}" title="Više od ${Math.round(p * 100)} % od ${d.length} usporedivih mjesta (50.000+ noćenja)">${arrow} ${t}</span>`;
   }
 
   // ---------- metric definitions ----------
@@ -76,6 +92,9 @@
     { key: 'intens', label: 'Noćenja po stanovniku', breaks: [1, 10, 50, 150, 400, 1000], colors: SEQ, fmt: v => fmt(v),
       legend: ['< 1', '1–10', '10–50', '50–150', '150–400', '400–1000', '> 1000'],
       note: 'Godišnja noćenja 2025. po stanovniku (Popis 2021.). Mjera turističkog pritiska na lokalnu zajednicu.' },
+    { key: 'ps', label: 'Mali iznajmljivači', breaks: [0.2, 0.4, 0.6, 0.8, 0.9], colors: ['--sea-0', '--sea-1', '--sea-2', '--sea-3', '--sea-4', '--sea-6'], fmt: v => pct(v, 0) + ' noćenja',
+      legend: ['< 20 %', '20–40 %', '40–60 %', '60–80 %', '80–90 %', '> 90 %'],
+      note: `Udio privatnog smještaja (sobe, apartmani i kuće za odmor malih iznajmljivača) u noćenjima 2025. Hrvatski prosjek: ${pct(HR_PS, 0)}. Podjela po vrsti smještaja postoji samo za primorske gradove i općine.` },
     { key: 'sea', label: 'Kakvoća mora', breaks: [0.8, 0.9, 0.999], colors: ['--neg-2', '--neg-1', '--sea-2', '--sea-4'], fmt: v => pct(v, 0) + ' izvrsno',
       legend: ['< 80 % izvrsno', '80–90 %', '90–99 %', 'sva mjesta izvrsna'],
       note: 'Udio mjernih mjesta s izvrsnom kakvoćom mora za kupanje (konačna ocjena 2026., IZOR). Unutrašnjost bez mjernih mjesta je siva.' },
@@ -256,6 +275,25 @@
     return s + '</svg><div class="leg2"><span><i style="background:var(--sea-3)"></i>2025.</span><span><i style="background:var(--accent)"></i>2026.</span></div>';
   }
 
+  function typeBlock(u) {
+    if (!u.coastal) return '<h4>Vrsta smještaja</h4><p class="empty">Podjelu noćenja po vrsti smještaja DZS objavljuje samo za primorske gradove i općine.</p>';
+    const n = u.tn[2025], b = u.tb[2025] || [];
+    const parts = [['Hoteli i sl.', n[0], '--sea-5'], ['Privatni smještaj', n[1], '--sea-3'], ['Kampovi', n[2], '--accent'], ['Ostalo', n[3], '--line']];
+    const tot = n[4] || 0;
+    if (!tot) return '';
+    const bar = parts.filter(p => p[1]).map(p => `<span title="${p[0]}: ${pct(p[1] / tot, 0)}" style="width:${(p[1] / tot * 100).toFixed(1)}%;background:var(${p[2]})"></span>`).join('');
+    const leg = parts.filter(p => p[1]).map(p => `<span><i style="background:var(${p[2]})"></i>${p[0]} ${pct(p[1] / tot, 0)}</span>`).join('');
+    const hidden = n.slice(0, 4).some(v => v == null) ? '<p class="note" style="padding:4px 0 0">Dio podataka je tajan (z) zbog malog broja objekata.</p>' : '';
+    return `<h4>Vrsta smještaja (2025.)</h4>
+      <div class="tbar">${bar}</div><div class="leg2 wrap">${leg}</div>${hidden}
+      <div class="stats" style="margin-top:12px">
+        <div><b>${u.ps == null ? '–' : pct(u.ps, 0)}</b>noćenja kod malih iznajmljivača ${lvl('ps', u.ps, null)}</div>
+        <div><b>${b[1] ? fmt(b[1]) : '–'}</b>kreveta u privatnom smještaju</div>
+        <div><b>${u.pocc == null ? '–' : fmt(u.pocc)}</b>noćenja po privatnom krevetu (HR: ${fmt(HR_OCC52)}) ${lvl('pocc', u.pocc, true)}</div>
+        <div><b>${u.hocc == null ? '–' : fmt(u.hocc)}</b>noćenja po hotelskom krevetu (HR: ${fmt(HR_OCC51)}) ${lvl('hocc', u.hocc, true)}</div>
+      </div>`;
+  }
+
   const QLBL = { 1: 'izvrsna', 2: 'dobra', 3: 'zadovoljavajuća', 4: 'nezadovoljavajuća' };
   const beachesBy = new Map();
   D.beaches.forEach(b => { if (!beachesBy.has(b[4])) beachesBy.set(b[4], []); beachesBy.get(b[4]).push(b); });
@@ -312,6 +350,7 @@
       </div>
       <h4>Noćenja po mjesecima</h4>
       ${monthChart(u)}
+      ${typeBlock(u)}
       ${beachList(u)}
       <h4>Kategorizirani objekti (${u.objs.length})</h4>
       ${u.objs.length ? `<ul class="objlist">${types}</ul>` : '<p class="empty">Nema hotela, kampova ni marina u popisu Ministarstva.</p>'}`;
@@ -356,6 +395,11 @@
     const seas = U.filter(u => u.n2025 >= 500000 && u.season != null).sort((a, b) => b.season - a.season);
     const ytdUp = U.filter(u => u.ytd25 >= 300000 && u.ytd != null).sort((a, b) => b.ytd - a.ytd).slice(0, 5);
     const badSea = U.filter(u => u.b_bad > 0).sort((a, b) => b.b_bad - a.b_bad);
+    const c200 = U.filter(u => u.n2025 >= 200000);
+    const privHi = c200.filter(u => u.ps != null).sort((a, b) => b.ps - a.ps).slice(0, 6);
+    const privLo = c200.filter(u => u.ps != null).sort((a, b) => a.ps - b.ps).slice(0, 6);
+    const occLo = c200.filter(u => u.npb != null).sort((a, b) => a.npb - b.npb).slice(0, 6);
+    const occHi = c200.filter(u => u.npb != null).sort((a, b) => b.npb - a.npb).slice(0, 3);
     const btn = u => `<button class="lnk" type="button" data-id="${u.id}">${esc(nm(u))}</button>`;
     const cards = [
       { n: 'Koncentracija', h: `Deset mjesta ostvaruje ${pct(sum(top10.map(u => u.n2025)) / NAT.n2025, 0)} svih noćenja`,
@@ -376,13 +420,95 @@
       { n: 'Najduža sezona', h: 'Gdje se noćenja događaju kroz cijelu godinu',
         p: `Velike destinacije (više od 500.000 noćenja) s najmanjim udjelom srpnja i kolovoza u godišnjim noćenjima. Ovdje su noćenja najravnomjernije raspoređena kroz godinu.`,
         l: seas.slice(-6).reverse().map(u => `${btn(u)} ${pct(u.season, 0)}`) },
+      { n: 'Mali iznajmljivači', h: 'Gdje gotovo sva noćenja idu privatnom smještaju',
+        p: `Udio soba, apartmana i kuća za odmor u noćenjima 2025., primorska mjesta s više od 200.000 noćenja. Hrvatski prosjek je ${pct(HR_PS, 0)}.`,
+        l: privHi.map(u => `${btn(u)} ${pct(u.ps, 0)}`) },
+      { n: 'Hoteli i kampovi', h: 'Gdje privatni smještaj gotovo ne postoji',
+        p: 'Najmanji udio malih iznajmljivača među istim mjestima. Ovdje noćenja nose hoteli, turistička naselja i kampovi velikih tvrtki.',
+        l: privLo.map(u => `${btn(u)} ${pct(u.ps, 0)} privatno`) },
+      { n: 'Iskorištenost', h: 'Gdje kreveti najviše stoje prazni',
+        p: `Noćenja po stalnom krevetu godišnje, mjesta s više od 200.000 noćenja. Hrvatski prosjek je ${fmt(NAT.n2025 / NAT.beds2025)}, a najbolje stoje ${occHi.map(u => `${esc(nm(u))} (${fmt(u.npb)})`).join(', ')}.`,
+        l: occLo.map(u => `${btn(u)} ${fmt(u.npb)}`) },
+      { n: 'Vrste smještaja', h: `Hotelski krevet radi ${(HR_HOCC / HR_POCC).toLocaleString('hr-HR', { maximumFractionDigits: 1 })} puta više od privatnog`,
+        p: `U 2025. krevet u hotelu ostvario je ${fmt(HR_HOCC)} noćenja, a krevet u privatnom smještaju ${fmt(HR_POCC)}. Privatni smještaj ima ${pct(T25('Privatni smještaj (sobe, apartmani, kuće)').beds / T25('Ukupno').beds, 0)} svih kreveta, ali ${pct(HR_PS, 0)} noćenja.`,
+        l: [], a: `<a href="#vrste-h">Sve vrste smještaja i trendovi →</a>` },
       { n: 'More', h: `${pct(D.beaches.filter(b => b[2] === 1).length / D.beaches.length, 0)} mjesta za kupanje ima izvrsnu kakvoću vode`,
         p: `Od ${fmt(D.beaches.length)} mjesta na moru, rijekama i jezerima samo ${D.beaches.filter(b => b[2] >= 3).length} ima ocjenu zadovoljavajuće ili loše. Čisto more zajednička je prednost cijele obale, pa destinacije po tome teško mogu biti različite.`,
         l: badSea.slice(0, 4).map(u => `${btn(u)} ${u.b_bad} od ${u.b_n} mjesta ispod „dobro”`) },
     ];
     const el = document.getElementById('insights');
-    el.innerHTML = cards.map(c => `<article class="card"><div class="n">${c.n}</div><h3>${c.h}</h3><p>${c.p}</p>${c.l.length ? `<ol>${c.l.map(x => `<li>${x}</li>`).join('')}</ol>` : ''}</article>`).join('');
+    el.innerHTML = cards.map(c => `<article class="card"><div class="n">${c.n}</div><h3>${c.h}</h3><p>${c.p}</p>${c.l.length ? `<ol>${c.l.map(x => `<li>${x}</li>`).join('')}</ol>` : ''}${c.a ? `<p style="margin-top:auto">${c.a}</p>` : ''}</article>`).join('');
     el.addEventListener('click', e => { const b = e.target.closest('button.lnk'); if (b) select(byId.get(b.dataset.id), true); });
+  })();
+
+  // ---------- accommodation types section ----------
+  (function typesSection() {
+    const P = 'Privatni smještaj (sobe, apartmani, kuće)';
+    const MAIN = [[P, 'Privatni smještaj', 'sobe, apartmani i kuće za odmor malih iznajmljivača', '--sea-3'],
+      ['Kampovi', 'Kampovi', '', '--accent'], ['Hoteli', 'Hoteli', '', '--sea-5'], ['Turistička naselja', 'Turistička naselja', '', '--sea-2']];
+    const years = Object.keys(TT['Ukupno'].years).map(Number).filter(y => y <= 2025).sort();
+    const tot = y => TT['Ukupno'].years[y];
+    const row = (key, y) => TT[key].years[y];
+    // "other" = total minus the four main types (company apartments, guest houses, hostels…)
+    const other = y => {
+      const t = tot(y), o = { n: t.n, beds: t.beds, nf: t.nf };
+      MAIN.forEach(([k]) => { const r = row(k, y); o.n -= r.n || 0; o.beds -= r.beds || 0; o.nf -= r.nf || 0; });
+      return o;
+    };
+    const otherM = () => TT['Ukupno'].m2025.map((v, i) => v - MAIN.reduce((s, [k]) => s + (TT[k].m2025[i] || 0), 0));
+    const rows = MAIN.map(([k, label, sub, col]) => ({ label, sub, col, r: row(k, 2025), m: TT[k].m2025 }))
+      .concat([{ label: 'Ostalo', sub: 'apartmani tvrtki, pansioni, hosteli, lječilišta…', col: '--line', r: other(2025), m: otherM() }]);
+    const T = tot(2025);
+    const maxN = Math.max(...rows.map(x => x.r.n)), maxO = Math.max(...rows.map(x => x.r.n / x.r.beds));
+    document.getElementById('typeTable').innerHTML = `<thead><tr><th scope="col">Vrsta smještaja</th><th scope="col">Noćenja 2025.</th><th scope="col">Udio noćenja</th><th scope="col">Stalni kreveti</th><th scope="col">Udio kreveta</th><th scope="col">Iskorištenost</th><th scope="col">Strani gosti</th><th scope="col">Srpanj + kolovoz</th></tr></thead><tbody>` +
+      rows.map(x => {
+        const occ = x.r.n / x.r.beds, ja = (x.m[6] + x.m[7]) / x.r.n;
+        return `<tr class="nohover"><td><span class="sw2" style="background:var(${x.col})"></span>${x.label}${x.sub ? `<div class="tsub">${x.sub}</div>` : ''}</td>
+          <td><span class="cbar"><i style="width:${(x.r.n / maxN * 100).toFixed(0)}%"></i></span>${(x.r.n / 1e6).toLocaleString('hr-HR', { maximumFractionDigits: 1 })} mil.</td>
+          <td>${pct(x.r.n / T.n, 0)}</td><td>${fmt(x.r.beds)}</td><td>${pct(x.r.beds / T.beds, 0)}</td>
+          <td><span class="cbar o"><i style="width:${(occ / maxO * 100).toFixed(0)}%"></i></span>${fmt(occ)}</td>
+          <td>${pct(x.r.nf / x.r.n, 0)}</td><td>${pct(ja, 0)}</td></tr>`;
+      }).join('') +
+      `<tr class="nohover tot"><td>Ukupno</td><td>${(T.n / 1e6).toLocaleString('hr-HR', { maximumFractionDigits: 1 })} mil.</td><td>100 %</td><td>${fmt(T.beds)}</td><td>100 %</td><td>${fmt(T.n / T.beds)}</td><td>${pct(T.nf / T.n, 0)}</td><td>${pct((NAT.m2025[6] + NAT.m2025[7]) / T.n, 0)}</td></tr></tbody>`;
+    const pr = row(P, 2025);
+    document.getElementById('typeKpis').innerHTML = [
+      [pct(pr.n / T.n, 0), 'noćenja kod malih iznajmljivača', `uz ${pct(pr.beds / T.beds, 0)} svih kreveta`],
+      [fmt(HR_HOCC), 'noćenja po hotelskom krevetu', `privatni smještaj: ${fmt(HR_POCC)}`],
+      [fmt(row('Kampovi', 2025).n / row('Kampovi', 2025).beds), 'noćenja po krevetu u kampovima', `2019.: ${fmt(row('Kampovi', 2019).n / row('Kampovi', 2019).beds)}`],
+    ].map(k => `<div class="kpi"><div class="v">${k[0]}</div><div class="l">${k[1]}</div><div class="d">${k[2]}</div></div>`).join('');
+
+    // line charts
+    function lines(el, get, fmtY) {
+      const W = 520, H = 230, L = 46, R = 26, Tp = 12, B = 26;
+      const series = MAIN.map(([k, label, , col]) => ({ label, col, v: years.map(y => get(row(k, y))) }));
+      const all = series.flatMap(s => s.v).filter(v => v != null);
+      const mx = Math.max(...all) * 1.08, mn = 0;
+      const x = i => L + i * (W - L - R) / (years.length - 1), y = v => Tp + (H - Tp - B) * (1 - (v - mn) / (mx - mn));
+      let g = '';
+      const step = mx > 30 ? (mx > 100 ? 50 : 10) : 10;
+      for (let t = 0; t <= mx; t += step) g += `<line class="grid" x1="${L}" x2="${W - R}" y1="${y(t)}" y2="${y(t)}"/><text x="${L - 6}" y="${y(t) + 3}" text-anchor="end">${fmtY(t)}</text>`;
+      years.forEach((yy, i) => { g += `<text x="${x(i)}" y="${H - 8}" text-anchor="middle">${yy}</text>`; });
+      series.forEach(s => {
+        const pts = s.v.map((v, i) => v == null ? null : `${x(i).toFixed(1)},${y(v).toFixed(1)}`).filter(Boolean).join(' ');
+        g += `<polyline points="${pts}" fill="none" style="stroke:var(${s.col})" stroke-width="2.4"/>`;
+        const li = s.v.length - 1;
+        g += `<circle cx="${x(li)}" cy="${y(s.v[li])}" r="3.5" style="fill:var(${s.col})"/>`;
+      });
+      document.getElementById(el).innerHTML = `<svg class="mchart lc" viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Linijski graf po vrsti smještaja">${g}</svg>` +
+        `<div class="leg2 wrap">${series.map(s => `<span><i style="background:var(${s.col})"></i>${s.label}</span>`).join('')}</div>`;
+    }
+    lines('trendN', r => r && r.n ? r.n / 1e6 : null, t => t.toLocaleString('hr-HR'));
+    lines('trendO', r => r && r.n && r.beds ? r.n / r.beds : null, t => fmt(t));
+
+    const ch = (k, a, b) => row(k, b).n / row(k, a).n - 1;
+    const bch = (k, a, b) => row(k, b).beds / row(k, a).beds - 1;
+    const ytd = k => sum(TT[k].m2026) / sum(TT[k].m2025.slice(0, PUB)) - 1;
+    document.getElementById('typeNotes').innerHTML = [
+      `<b>Kampovi rastu najbrže:</b> ${spct(ch('Kampovi', 2019, 2025))} noćenja od 2019., uz ${spct(bch('Kampovi', 2019, 2025))} kreveta. Iskorištenost im je porasla s ${fmt(row('Kampovi', 2019).n / row('Kampovi', 2019).beds)} na ${fmt(row('Kampovi', 2025).n / row('Kampovi', 2025).beds)} noćenja po krevetu.`,
+      `<b>Privatni smještaj stoji:</b> noćenja ${spct(ch(P, 2019, 2025))} od 2019., kreveta ${spct(bch(P, 2019, 2025))}. Osim u pandemijskim 2020. i 2021., iskorištenost je stalno oko ${fmt(HR_POCC)} noćenja po krevetu, što odgovara otprilike dva mjeseca pune popunjenosti godišnje.`,
+      `<b>Hoteli</b> imaju najveću iskorištenost (${fmt(HR_HOCC)}) i ${spct(ch('Hoteli', 2019, 2025))} noćenja od 2019.; <b>turistička naselja</b> ${spct(ch('Turistička naselja', 2019, 2025))}.`,
+      `<b>2026. (sij–${MON[PUB - 1]}) prema istom razdoblju 2025.:</b> hoteli ${spct(ytd('Hoteli'))}, turistička naselja ${spct(ytd('Turistička naselja'))}, privatni smještaj ${spct(ytd(P))}, kampovi ${spct(ytd('Kampovi'))}.`,
+    ].map(t => `<li>${t}</li>`).join('');
   })();
 
   // ---------- operators ----------

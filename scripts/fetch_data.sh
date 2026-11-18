@@ -43,6 +43,31 @@ rm -f q_*.json
 # 3) DZS coastal settlements -> municipality hierarchy (used to place objects)
 curl -fsSL -o meta_BS_T01.json 'https://web.dzs.hr/PxWeb/api/v1/hr/Turizam/Turizam%20u%20primorskim%20gradovima%20i%20op%C4%87inama/BS_T01.px'
 
+# 3b) accommodation types: national monthly (BS_TU14) and coastal municipalities (BS_T02 nights, BS_T04 beds)
+python3 - <<'EOF2'
+import json, urllib.request
+def meta(url): return json.load(urllib.request.urlopen(url))
+P = 'https://web.dzs.hr/PxWeb/api/v1/hr/Turizam/Turizam%20u%20primorskim%20gradovima%20i%20op%C4%87inama/'
+K = 'https://web.dzs.hr/PxWeb/api/v1/hr/Turizam/Dolasci%20i%20no%C4%87enja%20turista%20u%20komercijalnim%20smje%C5%A1tajnim%20objektima/'
+def q(m, f):
+    return {'query': [{'code': v['code'], 'selection': {'filter': 'item', 'values': [x for x, t in zip(v['values'], v['valueTexts']) if f(v['code'], x, t)]}} for v in m['variables']], 'response': {'format': 'csv'}}
+yrs = {'2019', '2023', '2024', '2025'}
+def f2(c, x, t):
+    if c in ('Prostor', 'Prostorna jedinica'): return x.endswith('000000') or len(t) - len(t.lstrip()) == 5
+    if c == 'Godina': return t in yrs
+    if c == 'Promet turista': return t == 'Noćenja'
+    if c == 'Sobe/Postelje': return t == 'Postelje'
+    return True
+for name, base, f, out in [('BS_T02', P, f2, 'q_T02.json'), ('BS_T04', P, f2, 'q_T04.json'),
+                           ('BS_TU14', K, lambda c, x, t: c != 'Godina' or t >= '2024', 'q_TU14m.json')]:
+    json.dump(q(meta(base + name + '.px'), f), open(out, 'w'))
+EOF2
+curl -fsSL -X POST -H 'Content-Type: application/json' --data @q_T02.json -o T02.csv 'https://web.dzs.hr/PxWeb/api/v1/hr/Turizam/Turizam%20u%20primorskim%20gradovima%20i%20op%C4%87inama/BS_T02.px'
+curl -fsSL -X POST -H 'Content-Type: application/json' --data @q_T04.json -o T04.csv 'https://web.dzs.hr/PxWeb/api/v1/hr/Turizam/Turizam%20u%20primorskim%20gradovima%20i%20op%C4%87inama/BS_T04.px'
+curl -fsSL -X POST -H 'Content-Type: application/json' --data @q_TU14m.json -o TU14m.csv "$PX/BS_TU14.px"
+curl -fsSL -o BS_TU14.csv -X POST -H 'Content-Type: application/json' --data "$(python3 -c "import json,urllib.request;m=json.load(urllib.request.urlopen('$PX/BS_TU14.px'));print(json.dumps({'query':[{'code':v['code'],'selection':{'filter':'item','values':[x for x,t in zip(v['values'],v['valueTexts']) if v['code']!='Mjesec' or t=='01.-12.']}} for v in m['variables']],'response':{'format':'csv'}}))")" "$PX/BS_TU14.px"
+rm -f q_*.json
+
 # 4) IZOR bathing water quality, EU final assessment (p_ciklus=-2)
 for y in 2024 2025 2026; do
   curl -fsSL -o "izor_eu_$y.json" "https://vrtlac.izor.hr/ords/kakvoca/kakvoce_sve_json?p_jezik=hr&p_god=$y&p_usif=&p_ciklus=-2"
