@@ -18,6 +18,9 @@
   .url { position: absolute; left: 0; right: 0; bottom: 56px; text-align: center; font-size: 36px; font-weight: 700; color: #ffd27a; }
   .cta { position: absolute; left: 70px; right: 70px; top: 470px; text-align: center; opacity: 0; }
   .cta .u2 { display: inline-block; margin-top: 40px; font-size: 64px; font-weight: 800; color: #08202c; background: #ffd27a; padding: 18px 36px; border-radius: 18px; }
+  .pt { font-size: 50px; color: #fff; margin-top: 34px; opacity: 0; display: flex; align-items: center; }
+  .pt b { display: inline-flex; align-items: center; justify-content: center; width: 72px; height: 72px; border-radius: 50%; background: #ffd27a; color: #08202c; font-size: 40px; margin-right: 28px; flex: none; }
+  #u6 { opacity: 0; margin-top: 70px; }
   .src { position: absolute; left: 0; right: 0; bottom: 16px; text-align: center; font-size: 20px; color: #8fb0b8; }
 </style></head>
 <body>
@@ -32,7 +35,8 @@
 <svg id="chart" viewBox="0 0 940 600"></svg>
 <div class="blk" id="s5"><div class="k">Question 3 · Who?</div><h2 id="s5h"></h2><div class="sub" style="font-size:30px"><span style="color:#ff8a65">■</span> places where private hosts have over 80% of stays</div></div>
 <div class="list" id="s5l" style="top:850px;width:500px;background:rgba(8,32,44,.88);border-radius:18px;padding:22px 26px;box-sizing:border-box"></div>
-<div class="cta" id="cta"><h2 style="font-size:84px">The <i>how</i> is cheap now.<br><span style="color:#ffd27a">The <i>what</i> is the job.</span></h2><div class="sub" style="margin-top:28px">Knowing what is interesting, and how to show it, matters more than writing the code.</div><div class="u2">markobozac.com/turizam</div></div>
+<div class="cta" id="cta"><h2 style="font-size:84px">The <i>how</i> is cheap now.<br><span style="color:#ffd27a">The <i>what</i> is the job.</span></h2><div class="sub" style="margin-top:28px">Knowing what is interesting, and how to show it, matters more than writing the code.</div></div>
+<div class="cta" id="s6" style="top:300px;text-align:left"><div class="k">But AI does not replace the person</div><h2 style="font-size:72px;margin-top:18px">It still takes someone who</h2><div class="pt" id="p1"><b>1</b>understands the problem</div><div class="pt" id="p2"><b>2</b>knows how to use AI</div><div class="pt" id="p3"><b>3</b>drives it to a solution</div><div style="text-align:center"><div class="u2" id="u6">markobozac.com/turizam</div></div></div>
 <div class="url" id="url">markobozac.com/turizam</div>
 <div class="src">Sources: Croatian Bureau of Statistics, Ministry of Tourism and Sports, IZOR</div>
 <script src="../../site/data.js"></script>
@@ -121,14 +125,17 @@ window.render = function (t) {
   set('s5', win(t, 15.6, 18.0), 40);
   document.getElementById('s5l').style.opacity = win(t, 16.2, 18.0);
   obs.forEach(o => { o.style.width = (parseFloat(o.dataset.w) * ramp(t, 16.3, 17.2)) + '%'; });
-  set('cta', ramp(t, 18.1, 18.6), 40);
+  set('cta', win(t, 18.1, 21.4), 40);
+  set('s6', ramp(t, 21.5, 21.9), 30);
+  ['p1','p2','p3'].forEach((id, i) => set(id, ramp(t, 22.0 + i * .7, 22.5 + i * .7), 20));
+  document.getElementById('u6').style.opacity = ramp(t, 24.2, 24.7);
   document.getElementById('url').style.opacity = 1 - ramp(t, 18.0, 18.4);
   const cnt = ramp(t, 3.8, 5.8) * NAT.n2025;
   document.getElementById('cnt').textContent = (cnt / 1e6).toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + 'M';
 
   // map
   const mapIn = ramp(t, 0.3, 3.0), choro = ramp(t, 4.0, 6.0);
-  const dimForChart = win(t, 12.0, 15.5, .5), dimCta = ramp(t, 18.0, 18.6);
+  const dimForChart = win(t, 12.0, 15.5, .5), dimCta = Math.min(1, ramp(t, 18.0, 18.6) + ramp(t, 21.4, 21.8) * .5);
   const hl10 = win(t, 8.2, 12.0, .5), hlGap = win(t, 15.6, 18.0, .5);
   map.style.opacity = 1 - .75 * dimForChart - .8 * dimCta;
   for (const p of paths) {
@@ -152,7 +159,7 @@ window.render = function (t) {
     b.r.setAttribute('y', 550 - h); b.r.setAttribute('height', Math.max(0, h));
   }
 };
-window.DURATION = 21.0;
+window.DURATION = 27.0;
 render(0);
 </script>
 </body></html>
