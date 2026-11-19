@@ -23,15 +23,15 @@
 <body>
 <div id="bg"></div>
 <svg id="map"></svg>
-<div class="blk" id="s1"><div class="k">Otvoreni podaci · 2025.–2026.</div><h1>Turistička karta Hrvatske</h1></div>
+<div class="blk" id="s1"><div class="k">Uz Dane hrvatskog turizma 2026.</div><h1>Turistička karta Hrvatske</h1></div>
 <div class="blk" id="s2"><div class="big" id="cnt">0</div><div class="sub">noćenja u 2025. u komercijalnom smještaju</div></div>
 <div class="blk" id="s2b" style="top:300px"></div>
 <div class="blk" id="s3"><div class="k">Koncentracija</div><h2 id="s3h"></h2></div>
 <div class="list" id="s3l"></div>
 <div class="blk" id="s4"><div class="k">Sezonalnost</div><h2 id="s4h"></h2></div>
 <svg id="chart" viewBox="0 0 940 600"></svg>
-<div class="blk" id="s5"><div class="k">Prilika</div><h2>Puno noćenja, malo premium hotela</h2></div>
-<div class="list" id="s5l"></div>
+<div class="blk" id="s5"><div class="k">Mali iznajmljivači</div><h2 id="s5h"></h2><div class="sub" style="font-size:30px"><span style="color:#ff8a65">■</span> mjesta gdje mali iznajmljivači imaju više od 80 % noćenja</div></div>
+<div class="list" id="s5l" style="top:850px;width:500px;background:rgba(8,32,44,.88);border-radius:18px;padding:22px 26px;box-sizing:border-box"></div>
 <div class="cta" id="cta"><h2 style="font-size:84px">Istraži svih 556 gradova i općina</h2><div class="sub" style="margin-top:24px">noćenja · rast · sezonalnost · hoteli · operateri · kakvoća mora</div><div class="u2">markobozac.com/turizam</div></div>
 <div class="url" id="url">markobozac.com/turizam</div>
 <div class="src">Izvori: DZS, Ministarstvo turizma i sporta, IZOR</div>
@@ -77,10 +77,15 @@ const bex = D.beaches.filter(b => b[2] === 1).length / D.beaches.length;
 document.getElementById('s2b').innerHTML = `<div class="sub" style="font-size:44px;color:#fff"><b style="color:#ffd27a">${D.beaches.length.toLocaleString('hr-HR')}</b> mjesta za kupanje, <b style="color:#ffd27a">${Math.round(bex * 100)} %</b> izvrsne kakvoće</div>`;
 // premium gap
 const natPrem = U.reduce((s, u) => s + u.c_prem_beds, 0) / NAT.n2025 * 1e4;
-const gap = U.filter(u => u.n2025 >= 500000 && u.c_prem_beds / u.n2025 * 1e4 < natPrem)
-  .map(u => ({ u, g: natPrem * u.n2025 / 1e4 - u.c_prem_beds })).sort((a, b) => b.g - a.g).slice(0, 5);
-const gapSet = new Set(gap.map(x => x.u.id));
-document.getElementById('s5l').innerHTML = gap.map(x => `<div><span>${short(x.u.label)}</span><b>${(x.u.n2025 / 1e6).toLocaleString('hr-HR', { maximumFractionDigits: 1 })} mil.</b></div>`).join('') + '<div style="border:0;font-size:24px;color:#c8dde2;margin-top:8px">noćenja 2025.; najveći manjak premium kreveta prema prosjeku Hrvatske</div>';
+const T25 = n => D.nat.types.find(t => t.name === n).years[2025];
+const PR = T25('Privatni smještaj (sobe, apartmani, kuće)'), HO = T25('Hoteli'), KA = T25('Kampovi');
+document.getElementById('s5h').textContent = `${Math.round(PR.n / NAT.n2025 * 100)} % noćenja u privatnom smještaju`;
+const occ = [['Hoteli', HO.n / HO.beds], ['Kampovi', KA.n / KA.beds], ['Privatni smještaj', PR.n / PR.beds]];
+const omx = occ[0][1];
+document.getElementById('s5l').innerHTML = '<div style="border:0;font-size:28px;color:#c8dde2;margin-bottom:10px">Noćenja po krevetu godišnje</div>' +
+  occ.map(([k, v]) => `<div style="display:block;border:0;margin-bottom:14px"><div style="display:flex;justify-content:space-between"><span>${k}</span><b>${Math.round(v)}</b></div><div style="height:16px;border-radius:8px;background:rgba(200,221,226,.15)"><div class="ob" data-w="${(v / omx * 100).toFixed(1)}" style="height:16px;border-radius:8px;background:${k === 'Privatni smještaj' ? '#ff8a65' : '#4fa1ad'};width:0"></div></div></div>`).join('');
+const gapSet = new Set(U.filter(u => u.tn && u.tn[2025] && u.tn[2025][4] && u.tn[2025][1] != null && u.tn[2025][1] / u.tn[2025][4] >= 0.8).map(u => u.id));
+const obs = [...document.querySelectorAll('.ob')];
 
 // chart
 const ch = document.getElementById('chart');
@@ -115,6 +120,7 @@ window.render = function (t) {
   document.getElementById('chart').style.opacity = win(t, 12.3, 15.5);
   set('s5', win(t, 15.6, 18.0), 40);
   document.getElementById('s5l').style.opacity = win(t, 16.2, 18.0);
+  obs.forEach(o => { o.style.width = (parseFloat(o.dataset.w) * ramp(t, 16.3, 17.2)) + '%'; });
   set('cta', ramp(t, 18.1, 18.6), 40);
   document.getElementById('url').style.opacity = 1 - ramp(t, 18.0, 18.4);
   const cnt = ramp(t, 3.8, 5.8) * NAT.n2025;
