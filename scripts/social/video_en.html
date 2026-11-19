@@ -36,7 +36,7 @@
 <div class="blk" id="s5"><div class="k">Question 3 · Who?</div><h2 id="s5h"></h2><div class="sub" style="font-size:30px"><span style="color:#ff8a65">■</span> places where private hosts have over 80% of stays</div></div>
 <div class="list" id="s5l" style="top:850px;width:500px;background:rgba(8,32,44,.88);border-radius:18px;padding:22px 26px;box-sizing:border-box"></div>
 <div class="cta" id="cta"><h2 style="font-size:84px">The <i>how</i> is cheap now.<br><span style="color:#ffd27a">The <i>what</i> is the job.</span></h2><div class="sub" style="margin-top:28px">Knowing what is interesting, and how to show it, matters more than writing the code.</div></div>
-<div class="cta" id="s6" style="top:300px;text-align:left"><div class="k">But AI does not replace the person</div><h2 style="font-size:72px;margin-top:18px">It still takes someone who</h2><div class="pt" id="p1"><b>1</b>understands the problem</div><div class="pt" id="p2"><b>2</b>knows how to use AI</div><div class="pt" id="p3"><b>3</b>drives it to a solution</div><div style="text-align:center"><div class="u2" id="u6">markobozac.com/turizam</div></div></div>
+<div class="cta" id="s6" style="top:300px;text-align:left"><div class="k">But AI does not replace the person</div><h2 style="font-size:72px;margin-top:18px">It still takes someone who</h2><div class="pt" id="p1"><b>1</b>understands the problem</div><div class="pt" id="p2"><b>2</b>knows how to use AI</div><div class="pt" id="p3"><b>3</b>drives it to a solution</div></div>
 <div class="url" id="url">markobozac.com/turizam</div>
 <div class="src">Sources: Croatian Bureau of Statistics, Ministry of Tourism and Sports, IZOR</div>
 <script src="../../site/data.js"></script>
@@ -128,8 +128,7 @@ window.render = function (t) {
   set('cta', win(t, 18.1, 21.4), 40);
   set('s6', ramp(t, 21.5, 21.9), 30);
   ['p1','p2','p3'].forEach((id, i) => set(id, ramp(t, 22.0 + i * .7, 22.5 + i * .7), 20));
-  document.getElementById('u6').style.opacity = ramp(t, 24.2, 24.7);
-  document.getElementById('url').style.opacity = 1 - ramp(t, 18.0, 18.4);
+  document.getElementById('url').style.opacity = Math.max(1 - ramp(t, 18.0, 18.4), ramp(t, 24.2, 24.7));
   const cnt = ramp(t, 3.8, 5.8) * NAT.n2025;
   document.getElementById('cnt').textContent = (cnt / 1e6).toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + 'M';
 
