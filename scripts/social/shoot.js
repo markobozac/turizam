@@ -8,7 +8,7 @@ const fs = require('fs');
   const browser = await puppeteer.launch({ executablePath: '/usr/bin/google-chrome', args: ['--no-sandbox', '--allow-file-access-from-files'] });
   const page = await browser.newPage();
   await page.setViewport({ width: 1080, height: 1350, deviceScaleFactor: 1 });
-  await page.goto('file://' + __dirname + '/video.html', { waitUntil: 'load' });
+  await page.goto('file://' + __dirname + '/' + (process.env.PAGE || 'video.html'), { waitUntil: 'load' });
   if (mode === 'frames') {
     for (const t of a.split(',').map(Number)) {
       await page.evaluate(t => render(t), t);
